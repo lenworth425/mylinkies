@@ -92,7 +92,7 @@ thoughtSchema
     .get(function(this: any) {
     return this.reactions.length;
 });
-thoughtSchema.set('toJSon', { virtuals: true, });
+thoughtSchema.set('toJSON', { virtuals: true, });
 
 const Thought = model('Thought', thoughtSchema);
 
