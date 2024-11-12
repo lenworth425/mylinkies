@@ -4,7 +4,7 @@ import { Request, Response } from "express";
 
 export const getUsers = async (req: Request, res: Response) => {
   try {
-    const users = await User.findByPk(req.params.id, {
+    const users = await User.findOne({_id: req.params.id}, {
       include: Thought,
     });
     res.json(users);
@@ -34,25 +34,35 @@ export const createUser = async (req: Request, res: Response) => {
   
 export const addFriend = async (req: Request, res: Response) => {
   try {
-    const user = await User.findByPk(req.params.id);
-    await user.addFriend(req.params.friendId);
-    res.json({ message: "Friend added" });
+    const user = await User.findOne({_id: req.params.id});
+    if (user) {
+      user.friends.push(req.params.friendId as any);
+      if (user) {
+        await user.save();
+        res.json({ message: "Friend added" });
+        
+      }
+      await user.save();
+    } else {
+      res.status(404).json({ message: 'No user with that ID' });
+    }
+    return res.json({ message: "Friend added" });
   } catch (error) {
-    res.status(400).json({ message: 'No user with that ID' });
+    return res.status(400).json({ message: 'No user with that ID' });
   }
 };
 
 export const deleteFriend = async (req: Request, res: Response) => {
   try {
-    const user = await User.findOneAndDelete(req.params.id);
+    const user = await User.findOneAndDelete({_id: req.params.id});
 
     if (!user) {
       return res.status(404).json({ message: "Friend not found" });
     }
     await Thought.deleteMany({ _id: { $in: user.friends } });
-    res.json({ message: "Friend Removed From List" });
+    return res.json({ message: "Friend Removed From List" });
   } catch (error) {
-    res.status(400).json({ message: 'No user with that ID' });
+    return res.status(400).json({ message: 'No user with that ID' });
   }
 };
 

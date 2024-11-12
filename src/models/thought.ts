@@ -1,14 +1,8 @@
-import { Schema, model, Document, ObjectId } from 'mongoose';
+import { Schema, model, Document, ObjectId, Types } from 'mongoose';
 
-interface Ithought extends Document {
-    thoughtText: string;
-    username: string;
-    createdAt: Date;
-    reactions: IReaction[];
-}
-
+// Define the Reaction interface
 interface IReaction extends Document {
-    reactionId: ObjectId[];
+    reactionId: ObjectId; // Changed to a single ObjectId
     reactionBody: string;
     username: string;
     createdAt: Date;
@@ -19,7 +13,7 @@ const reactionSchema = new Schema<IReaction>(
     {
         reactionId: { 
             type: Schema.Types.ObjectId, 
-            default: () => new ObjectId() 
+            default: () => new Types.ObjectId() 
         },
         reactionBody: { 
             type: String, 
@@ -33,7 +27,6 @@ const reactionSchema = new Schema<IReaction>(
         createdAt: { 
             type: Date, 
             default: Date.now, 
-            get: (timestamp: any) => dateFormat(timestamp)
         }
     },
     {
@@ -44,22 +37,15 @@ const reactionSchema = new Schema<IReaction>(
     },
 );
 
-// Create the dateFormat function
-const dateFormat = (createdAt: Date): string => {
-    return new Date(createdAt).toLocaleString();
+// Thought Schema
+interface IThought extends Document {
+    thoughtText: string;
+    username: string;
+    createdAt: Date;
+    reactions: IReaction[];
 }
 
-// Create the virtual for the reactionCount
-reactionSchema
-    .virtual('reactionCount')
-    .get(function(this: any) {
-    return this.reactions.length;
-});
-
-
-
-// Thought Schema
-const thoughtSchema = new Schema<Ithought>(
+const thoughtSchema = new Schema<IThought>(
     {
         thoughtText: { 
             type: String, 
@@ -74,7 +60,6 @@ const thoughtSchema = new Schema<Ithought>(
         createdAt: { 
             type: Date, 
             default: Date.now, 
-            get: (timestamp: any) => dateFormat(timestamp)
         },
         reactions: [reactionSchema]
     },
@@ -87,13 +72,13 @@ const thoughtSchema = new Schema<Ithought>(
     },
 );
 
+// Create the virtual for the reactionCount
 thoughtSchema
     .virtual('reactionCount')
-    .get(function(this: any) {
-    return this.reactions.length;
-});
-thoughtSchema.set('toJSON', { virtuals: true, });
+    .get(function(this: IThought) {
+        return this.reactions.length;
+    });
 
-const Thought = model('Thought', thoughtSchema);
+const Thought = model<IThought>('Thought', thoughtSchema);
 
-export default  Thought;
+export default Thought;

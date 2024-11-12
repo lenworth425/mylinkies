@@ -1,5 +1,5 @@
-import { Routes } from 'express';
-const router = Routes();
+import { Router } from 'express';
+const router = Router();
 
 import { getThoughts, getSingleThought, createThought, updateThought, deleteThought, addReaction, deleteReaction } from '../../controllers/thoughtController.js';
 

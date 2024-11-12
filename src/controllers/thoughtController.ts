@@ -1,12 +1,19 @@
 import { Thought, User } from "../models/index.js";
 import { Request, Response } from "express";
 
+
+interface ICreateThoughtBody {
+  thoughtText: string;
+  username: string;
+  userId: string;
+}
+
 export const getThoughts = async (_req: Request, res: Response) => {
   try {
     const thoughts = await Thought.find();
-    res.json(thoughts);
+    return res.json(thoughts);
   } catch (err) {
-    res.status(400).json(err);
+    return res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -18,17 +25,17 @@ export const getSingleThought = async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'No thought found with this id!' });
     }
 
-    res.json(thought);
+    return res.json(thought);
   } catch (err) {
-    res.status(400).json(err);
+    return res.status(400).json(err);
   }
 };
 
-export const createThought = async (req: Request, res: Response) => {
+export const createThought = async (req: Request<{}, {}, ICreateThoughtBody>, res: Response) => {
   try {
     const thought = await Thought.create(req.body);
     const user = await User.findOneAndUpdate(
-        { _id: thought.userId},
+        { _id: req.body.userId},
         {$addToSet: { thoughts: thought._id }},
         { new: true }
     );
@@ -38,11 +45,11 @@ export const createThought = async (req: Request, res: Response) => {
         message: 'Thought Created, but no user found with that id!' });
     }
 
-    user.thoughts.push(thought._id);
+    user.thoughts.push(thought._id as any);
     await user.save();
-    res.json(thought);
+    return res.json(thought);
   } catch (err) {
-    res.status(400).json(err);
+    return res.status(400).json(err);
   }
 };
 
@@ -54,26 +61,31 @@ export const updateThought = async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'No thought found with this id!' });
     }
 
-    res.json(thought);
+    return res.json(thought);
   } catch (err) {
-    res.status(400).json(err);
+    return res.status(400).json(err);
   }
 };
 
 export const deleteThought = async (req: Request, res: Response) => {
   try {
-    const thought = await Thought.findOneAndDelete({_id: req.params.thoughtId});
-    const user = await User.findOne({_id: thought.userId});
+    const thought: any = await Thought.findOneAndDelete({ _id: req.params.thoughtId });
 
     if (!thought) {
       return res.status(404).json({ message: 'No thought found with this id!' });
     }
 
-    user.thoughts.pull(thought._id);
-    await user.save();
-    res.json(thought);
+    const user = await User.findOne({ _id: thought.userId });
+
+    if (user) {
+      user.thoughts = user.thoughts.filter(thoughtId => thoughtId.toString() !== thought._id.toString());
+      await user.save();
+    }
+
+    return res.json(thought);
   } catch (err) {
-    res.status(400).json(err);
+    console.error(err);
+    return res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -85,9 +97,9 @@ export const addReaction = async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'No thought found with this id!' });
     }
 
-    res.json(thought);
+    return res.json(thought);
   } catch (err) {
-    res.status(400).json(err);
+    return res.status(400).json(err);
   }
 };
 
@@ -101,8 +113,8 @@ export const deleteReaction = async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'No thought found with this id!' });
     }
     
-    res.json(thought);
-    } catch (err) {
-    res.status(400).json(err);
-    }
+    return res.json(thought);
+  } catch (err) {
+    return res.status(400).json(err);
+  }
 };
