@@ -1,12 +1,10 @@
-import { User, Thought } from "../models/index.js";
+import { User, Thoughts } from "../models/index.js";
 import { Request, Response } from "express";
 
 
-export const getUsers = async (req: Request, res: Response) => {
+export const getUsers = async (_req: Request, res: Response) => {
   try {
-    const users = await User.findOne({_id: req.params.id}, {
-      include: Thought,
-    });
+    const users = await User.find();
     res.json(users);
   } catch (error) {
     res.status(400).json(error);
@@ -59,7 +57,7 @@ export const deleteFriend = async (req: Request, res: Response) => {
     if (!user) {
       return res.status(404).json({ message: "Friend not found" });
     }
-    await Thought.deleteMany({ _id: { $in: user.friends } });
+    await Thoughts.deleteMany({ _id: { $in: user.friends } });
     return res.json({ message: "Friend Removed From List" });
   } catch (error) {
     return res.status(400).json({ message: 'No user with that ID' });

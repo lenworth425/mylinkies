@@ -1,5 +1,5 @@
 import connection from '../config/connections.js';
-import { User, Thought } from '../models/index.js';
+import { User, Thoughts } from '../models/index.js';
 import { userData, getRandomItems } from './data.js';
 
 // Create functions to generate random data
@@ -14,7 +14,7 @@ const getRandomUser = () => {
 const getRandomThought = (users: string | any[]) => {
   const randomUser = users[Math.floor(Math.random() * users.length)];
   const user = userData.find(u => u.username === randomUser.username);
-  const randomThought = user ? getRandomItems(user.thoughts, 1)[0] : '';
+  const randomThought = user ? getRandomItems(user.thoughtText, 1)[0] : '';
   
   return {
     thoughtText: randomThought,
@@ -31,7 +31,7 @@ connection.once('open', async () => {
   try {
     // Clear existing data
     await User.deleteMany({});
-    await Thought.deleteMany({});
+    await Thoughts.deleteMany({});
 
     // Create users
     const users = Array.from({ length: 10 }, getRandomUser);
@@ -39,7 +39,7 @@ connection.once('open', async () => {
 
     // Create thoughts
     const thoughts = Array.from({ length: 100 }, () => getRandomThought(createdUsers));
-    await Thought.create(thoughts);
+    await Thoughts.create(thoughts);
 
     console.log('Data seeded successfully!');
   } catch (error) {

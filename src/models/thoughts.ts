@@ -39,6 +39,7 @@ const reactionSchema = new Schema<IReaction>(
 
 // Thought Schema
 interface IThought extends Document {
+    thoughtId: ObjectId; 
     thoughtText: string;
     username: string;
     createdAt: Date;
@@ -79,6 +80,6 @@ thoughtSchema
         return this.reactions.length;
     });
 
-const Thought = model<IThought>('Thought', thoughtSchema);
+const Thoughts = model<IThought>('Thoughts', thoughtSchema);
 
-export default Thought;
+export default Thoughts;
