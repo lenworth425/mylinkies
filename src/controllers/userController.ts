@@ -13,7 +13,7 @@ export const getUsers = async (_req: Request, res: Response) => {
 
 export const getSingleUser = async (req: Request, res: Response) => {
     try {
-      const user = await User.findOne({ _id: req.params.userid});
+      const user = await User.findOne({ _id: req.params.userId});
       res.json(user);
     } catch (error) {
       res.status(400).json({message: 'No user with that ID'});
@@ -29,22 +29,44 @@ export const createUser = async (req: Request, res: Response) => {
       res.status(400).json(error);
     }
 };
+
+export const updateUser = async (req: Request, res: Response) => {
+  try {
+    const user = await User.findOneAndUpdate({ _id: req.params.userId }, req.body,
+      { new: true });
+    if (user) {
+      res.json({ message: "User updated" });
+    }
+  } catch (error) {
+    res.status(400).json({ message: 'No user with that ID' });
+  }
+}
+
+export const deleteUser = async (req: Request, res: Response) => {
+  try {
+    const user = await User.findOneAndDelete({ _id: req.params.userId });
+    if (!user) {
+      return res.status(404).json({ message: 'No user with that ID' });
+    }
+    await Thoughts.deleteMany({ userId: req.params.userId });
+    await User.findOneAndDelete({ _id: req.params.userId });
+    return res.json({ message: "User and associated thoughts deleted" });
+    
+  } catch (error) {
+    return res.status(400).json({ message: 'No user with that ID' });
+  }
+}
   
 export const addFriend = async (req: Request, res: Response) => {
   try {
-    const user = await User.findOne({_id: req.params.id});
+    const user = await User.findOne({_id: req.params.userId});
     if (user) {
       user.friends.push(req.params.friendId as any);
-      if (user) {
-        await user.save();
-        res.json({ message: "Friend added" });
-        
-      }
       await user.save();
+      return res.json({ message: "Friend added" });
     } else {
-      res.status(404).json({ message: 'No user with that ID' });
+      return res.status(404).json({ message: 'Error adding friend!' });
     }
-    return res.json({ message: "Friend added" });
   } catch (error) {
     return res.status(400).json({ message: 'No user with that ID' });
   }
@@ -52,13 +74,14 @@ export const addFriend = async (req: Request, res: Response) => {
 
 export const deleteFriend = async (req: Request, res: Response) => {
   try {
-    const user = await User.findOneAndDelete({_id: req.params.id});
-
-    if (!user) {
-      return res.status(404).json({ message: "Friend not found" });
+    const user = await User.findByIdAndUpdate(req.params.userId, {$pull: {friends: req.params.friendId}}, {new: true});
+    if (user) {
+      user.friends.filter(friendId => friendId.toString() !== req.params.friendId);
+      await user.save();
+      return res.json({ message: "Friend Removed From Friends' List" });
+    } else {
+      return res.status(404).json({ message: 'No user with that ID' });
     }
-    await Thoughts.deleteMany({ _id: { $in: user.friends } });
-    return res.json({ message: "Friend Removed From List" });
   } catch (error) {
     return res.status(400).json({ message: 'No user with that ID' });
   }

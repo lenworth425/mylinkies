@@ -44,6 +44,7 @@ interface IThought extends Document {
     username: string;
     createdAt: Date;
     reactions: IReaction[];
+    userId: ObjectId;
 }
 
 const thoughtSchema = new Schema<IThought>(
@@ -62,7 +63,12 @@ const thoughtSchema = new Schema<IThought>(
             type: Date, 
             default: Date.now, 
         },
-        reactions: [reactionSchema]
+        reactions: [reactionSchema],
+        userId: {
+            type: Schema.Types.ObjectId,
+            ref: 'User',
+            required: true
+        }
     },
     {
         toJSON: {

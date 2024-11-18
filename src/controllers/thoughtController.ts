@@ -40,14 +40,11 @@ export const createThought = async (req: Request<{}, {}, ICreateThoughtBody>, re
         { new: true }
     );
 
-    if (!user) {
-      return res.status(404).json({ 
-        message: 'Thought Created, but no user found with that id!' });
+    if (user) {
+      user.thoughts.push(thought._id as any);
+      await user.save();
     }
-
-    user.thoughts.push(thought._id as any);
-    await user.save();
-    return res.json(thought);
+    return res.json({ message: "Thought added!" });
   } catch (err) {
     return res.status(400).json(err);
   }
@@ -61,7 +58,7 @@ export const updateThought = async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'No thought found with this id!' });
     }
 
-    return res.json(thought);
+    return res.json({ message: "Thought Updated!" });
   } catch (err) {
     return res.status(400).json(err);
   }
@@ -82,7 +79,7 @@ export const deleteThought = async (req: Request, res: Response) => {
       await user.save();
     }
 
-    return res.json(thought);
+    return res.json({ message: "Thought deleted!" });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: 'Server error' });
@@ -97,7 +94,7 @@ export const addReaction = async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'No thought found with this id!' });
     }
 
-    return res.json(thought);
+    return res.json({ message: "Reaction added!" });
   } catch (err) {
     return res.status(400).json(err);
   }
@@ -113,7 +110,7 @@ export const deleteReaction = async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'No thought found with this id!' });
     }
     
-    return res.json(thought);
+    return res.json({ message: "Reaction deleted!" });
   } catch (err) {
     return res.status(400).json(err);
   }

@@ -14,7 +14,7 @@ const getRandomUser = () => {
 const getRandomThought = (users: string | any[]) => {
   const randomUser = users[Math.floor(Math.random() * users.length)];
   const user = userData.find(u => u.username === randomUser.username);
-  const randomThought = user ? getRandomItems(user.thoughtText, 1)[0] : '';
+  const randomThought = user ? getRandomItems(user.thoughts, 1)[0] : '';
   
   return {
     thoughtText: randomThought,
